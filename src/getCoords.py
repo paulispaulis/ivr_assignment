@@ -64,11 +64,16 @@ class Get_Coords:
     return fin_o
 
   def decoords(self, coords1, coords2):
-    self.decoords1 = []
-    self.decoords2 = []
+    decoords1 = []
+    decoords2 = []
     for i in np.arange(0, 10, 2):
-      self.decoords1.append([coords1[i], coords1[i+1]])
-      self.decoords2.append([coords2[i], coords2[i+1]])
+      decoords1.append([coords1[i], coords1[i+1]])
+      decoords2.append([coords2[i], coords2[i+1]])
+    a = self.pixel2meter(decoords1, decoords2)
+    decoords1 = decoords1 * a
+    decoords2 = decoords2 * a
+    self.decoords1 = np.array(decoords1)
+    self.decoords2 = np.array(decoords2)
 
   def callback1(self,data):
     #array in the form of yellow, blue, green, red, orange
