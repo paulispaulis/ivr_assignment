@@ -78,15 +78,58 @@ class image_converter:
     return np.array([cx, cy])
 
   def detect_orange(self, image):
+    image_copy = image
     mask = cv2.inRange(image, (50, 100, 100), (100, 255, 255))
     # kernel = np.ones((5, 5), np.uint8)
     # mask = cv2.dilate(mask, kernel, iterations=3)
     im1 = cv2.imshow('window1', mask)
     cv2.waitKey(10000)
 
-    M = cv2.moments(mask)
+    # M = cv2.moments(mask)
+    # cx = int(M['m10'] / M['m00'])
+    # cy = int(M['m01'] / M['m00'])
+
+    edged = cv2.Canny(mask, 30, 200)
+    im1 = cv2.imshow('window1', edged)
+    cv2.waitKey(10000)
+
+    wut1, cnts, wut2 = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    print(len(cnts))
+    print(wut1.shape)
+    print(wut2.shape)
+    # cnts = sorted(cnts, key = cv2.contourArea, reverse = True)
+    max_cunt=0
+    for cunts in cnts:
+      if len(cunts)>max_cunt:
+        max_cunt = len(cunts)
+        cnt = cunts
+    # cnt = wut1[0]
+    # print(len(cnt))
+    # print(cnt[0][0])
+    # cnt_center = []
+    # for c in cnt:
+    #   c=c[0]
+    #   cnt_center.append(c)
+    # cnt_center = np.array(cnt_center)
+    # o_center = np.rint(np.mean(cnt_center, axis=0))
+    # o_center = o_center.astype(int)
+    # print(o_center)
+    # cv2.circle(image, (o_center[0], o_center[1]), 7, (0,255,255), -1)
+    # cv2.imshow('window1', image)
+    # cv2.waitKey(10000)
+
+    M = cv2.moments(cnt)
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
+
+    cv2.circle(image_copy, (cx, cy), 2, (255, 255, 255), -1)
+    cv2.imshow('window1', image_copy)
+    cv2.waitKey(10000)
+
+    cv2.drawContours(image, [cnt], 0, (0,255,0), 3)
+    cv2.imshow('window1', image)
+    cv2.waitKey(10000)
+
     return np.array([cx, cy])
 
 
