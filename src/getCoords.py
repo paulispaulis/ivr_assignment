@@ -28,7 +28,15 @@ class Get_Coords:
     # initialize a subscriber to recieve coordinates from camera 2
     self.coords_sub2 = rospy.Subscriber("coords_topic2", Float64MultiArray, self.callback2)
 
-    # Recieve the coordinates from camera 1
+  def pixel2meter(self, decoords1, decoords2):
+    pass
+
+  def fin_o_coords(self, decoords1, decoords2):
+    pass
+
+  def decoords(self, coords1, coords2):
+    pass
+
   def callback1(self,data):
     #array in the form of yellow, blue, green, red, orange
     self.coords1 = data.data
@@ -42,7 +50,7 @@ class Get_Coords:
   def merge_coords(self):
       print(self.coords1)
       if self.coords1 is not None and self.coords2 is not None:
-        #compute final coords
+        #decode coords1 and coords2 into decoords1 decoords2
         pass
         
 
