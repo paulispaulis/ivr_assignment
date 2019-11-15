@@ -35,7 +35,7 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
-    if M['m00'] == 0: return np.array([0, 0])
+    if M['m00'] == 0: return np.array([-1, -1])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
     return np.array([cx, cy])
@@ -48,7 +48,7 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
-    if M['m00'] == 0: return np.array([0, 0])
+    if M['m00'] == 0: return np.array([-1, -1])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
     return np.array([cx, cy])
@@ -61,7 +61,7 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
-    if M['m00'] == 0: return np.array([0, 0])
+    if M['m00'] == 0: return np.array([-1, -1])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
     return np.array([cx, cy])
@@ -74,7 +74,7 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
-    if M['m00'] == 0: return np.array([0, 0])
+    if M['m00'] == 0: return np.array([-1, -1])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
 
@@ -98,7 +98,7 @@ class image_converter:
             cnt = cunts
 
     M = cv2.moments(cnt)
-    if M['m00'] == 0: return np.array([0, 0])
+    if M['m00'] == 0: return np.array([-1, -1])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
 

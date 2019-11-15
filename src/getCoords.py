@@ -33,12 +33,12 @@ class Get_Coords:
     if (b_conf >= 1):
       y_coords_1 = decoords1[0]
       b_coords_1 = decoords1[1]
-      dist1 = np.sum((y_coords_1 - b_coords_1)∗∗2
+      dist1 = np.sum((y_coords_1 - b_coords_1)∗∗2)
       return 2 / np.sqrt(dist1)
     else:
       y_coords_2 = decoords2[0]
       b_coords_2 = decoords2[1]
-      dist2 = np.sum((y_coords_2 - b_coords_2)∗∗2
+      dist2 = np.sum((y_coords_2 - b_coords_2)∗∗2)
       return 2 / np.sqrt(dist2)
 
   def fin_o_coords(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
@@ -46,18 +46,22 @@ class Get_Coords:
     o2 = decoords2[4]
     oc = deconf[4]
 
-    fin_o = (0, 0, 0)
-    if o1 == [0,0]:
+    fin_o = np.zeros(3)
+    if o1 == [-1,-1]:
+      print("cant see orange")
       pass
-    elif o2 == [0,0]:
+    elif o2 == [-1,-1]:
+      print("cant see orange")
       pass
     else:
+      fin_o[0] = o2[1]
+      fin_o[1] = o1[1]
       if oc < 1:
-        pass
+        fin_o[2] = o2[0]
       else:
-        fin_o[0] = o2[1]
-        fin_o[1] = o1[1]
         fin_o[2] = o1[0]
+
+    return fin_o
 
   def decoords(self, coords1, coords2):
     self.decoords1 = []
