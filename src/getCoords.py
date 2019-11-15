@@ -31,11 +31,30 @@ class Get_Coords:
   def pixel2meter(self, decoords1, decoords2):
     pass
 
-  def fin_o_coords(self, decoords1, decoords2):
-    pass
+  def fin_o_coords(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
+    o1 = decoords1[4]
+    o2 = decoords2[4]
+    oc = deconf[4]
+
+    fin_o = (0, 0, 0)
+    if o1 == [0,0]:
+      pass
+    elif o2 == [0,0]:
+      pass
+    else:
+      if oc < 1:
+        pass
+      else:
+        fin_o[0] = o2[1]
+        fin_o[1] = o1[1]
+        fin_o[2] = o1[0]
 
   def decoords(self, coords1, coords2):
-    pass
+    self.decoords1 = []
+    self.decoords2 = []
+    for i in np.arange(0, 10, 2):
+      self.decoords1.append([coords1[i], coords1[i+1]])
+      self.decoords2.append([coords2[i], coords2[i+1]])
 
   def callback1(self,data):
     #array in the form of yellow, blue, green, red, orange
@@ -48,10 +67,12 @@ class Get_Coords:
     self.merge_coords()
   
   def merge_coords(self):
-      print(self.coords1)
+      # print(self.coords1)
+      # print(self.coords2)
       if self.coords1 is not None and self.coords2 is not None:
         #decode coords1 and coords2 into decoords1 decoords2
-        pass
+        self.decoords(self.coords1, self.coords2)
+        print(self.decoords1, self.decoords2)
         
 
       # Publish the results
