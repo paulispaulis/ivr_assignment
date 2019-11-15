@@ -28,17 +28,18 @@ class Get_Coords:
     # initialize a subscriber to recieve coordinates from camera 2
     self.coords_sub2 = rospy.Subscriber("coords_topic2", Float64MultiArray, self.callback2)
 
-  def pixel2meter(self, decoords1, decoords2):
+  def pixel2meter(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
     b_conf = deconf[1]
+
     if (b_conf >= 1):
       y_coords_1 = decoords1[0]
       b_coords_1 = decoords1[1]
-      dist1 = np.sum((y_coords_1 - b_coords_1)∗∗2)
+      dist1 = np.sum((y_coords_1 - b_coords_1)**2)
       return 2 / np.sqrt(dist1)
     else:
       y_coords_2 = decoords2[0]
       b_coords_2 = decoords2[1]
-      dist2 = np.sum((y_coords_2 - b_coords_2)∗∗2)
+      dist2 = np.sum((y_coords_2 - b_coords_2)**2)
       return 2 / np.sqrt(dist2)
 
   def fin_o_coords(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
@@ -69,11 +70,24 @@ class Get_Coords:
     for i in np.arange(0, 10, 2):
       decoords1.append([coords1[i], coords1[i+1]])
       decoords2.append([coords2[i], coords2[i+1]])
+    decoords1, decoords2 = np.array(decoords1), np.array(decoords2)
     a = self.pixel2meter(decoords1, decoords2)
+    print("preA: ", decoords1)
     decoords1 = decoords1 * a
     decoords2 = decoords2 * a
-    self.decoords1 = np.array(decoords1)
-    self.decoords2 = np.array(decoords2)
+
+    print("postA: ", decoords1)
+    y1, y2 = decoords1[0], decoords2[0]
+    decoords1 = decoords1 - y1
+    decoords2 = decoords2 - y2
+    for i, xi in enumerate(decoords1):
+      decoords1[i][1] = -xi[1]
+      if xi[0]<-y1[0]: decoords1[i] = [-1, -1]
+    for i, xi in enumerate(decoords2):
+      decoords2[i][1] = -xi[1]
+      if xi[0]<-y1[0]: decoords2[i] = [-1, -1]
+    self.decoords1 = decoords1
+    self.decoords2 = decoords2
 
   def callback1(self,data):
     #array in the form of yellow, blue, green, red, orange
