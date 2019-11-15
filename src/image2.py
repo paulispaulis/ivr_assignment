@@ -129,7 +129,7 @@ class image_converter:
     o_coords = self.detect_orange(self.cv_image2)
 
     self.joints2 = Float64MultiArray()
-    self.joints2.data = np.array([y_coords, b_coords, g_coords, r_coords, o_coords])
+    self.joints2.data = np.append([], np.array([y_coords, b_coords, g_coords, r_coords, o_coords]))
 
 
     # Publish the results
