@@ -29,7 +29,17 @@ class Get_Coords:
     self.coords_sub2 = rospy.Subscriber("coords_topic2", Float64MultiArray, self.callback2)
 
   def pixel2meter(self, decoords1, decoords2):
-    pass
+    b_conf = deconf[1]
+    if (b_conf >= 1):
+      y_coords_1 = decoords1[0]
+      b_coords_1 = decoords1[1]
+      dist1 = np.sum((y_coords_1 - b_coords_1)∗∗2
+      return 2 / np.sqrt(dist1)
+    else:
+      y_coords_2 = decoords2[0]
+      b_coords_2 = decoords2[1]
+      dist2 = np.sum((y_coords_2 - b_coords_2)∗∗2
+      return 2 / np.sqrt(dist2)
 
   def fin_o_coords(self, decoords1, decoords2):
     pass
