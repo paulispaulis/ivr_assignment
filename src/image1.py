@@ -37,6 +37,7 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
+    if M['m00'] == 0: return np.array([0, 0])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
     return np.array([cx, cy])
@@ -49,6 +50,7 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
+    if M['m00'] == 0: return np.array([0, 0])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
     return np.array([cx, cy])
@@ -61,6 +63,7 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
+    if M['m00'] == 0: return np.array([0, 0])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
     return np.array([cx, cy])
@@ -73,8 +76,14 @@ class image_converter:
     cv2.waitKey(10000)
 
     M = cv2.moments(mask)
+    if M['m00'] == 0: return np.array([0, 0])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
+
+    cv2.circle(image, (cx, cy), 2, (255, 255, 255), -1)
+    cv2.imshow('window1', image)
+    cv2.waitKey(10000)
+
     return np.array([cx, cy])
 
   def detect_orange(self, image):
@@ -119,6 +128,7 @@ class image_converter:
     # cv2.waitKey(10000)
 
     M = cv2.moments(cnt)
+    if M['m00'] == 0: return np.array([0, 0])
     cx = int(M['m10'] / M['m00'])
     cy = int(M['m01'] / M['m00'])
 
@@ -155,14 +165,15 @@ class image_converter:
     r_coords = self.detect_red(self.cv_image1)
     o_coords = self.detect_orange(self.cv_image1)
 
-    coords1 = np.array([y_coords, b_coords, g_coords, r_coords, o_coords])
+    self.joints1 = Float64MultiArray()
+    self.joints1.data = np.array([y_coords, b_coords, g_coords, r_coords, o_coords])
 
 
     # Publish the results
     try: 
       self.image_pub1.publish(self.bridge.cv2_to_imgmsg(self.cv_image1, "bgr8"))
 
-      self.coords_pub1.publish(coords1)
+      self.coords_pub1.publish(self.joints1)
     except CvBridgeError as e:
       print(e)
 
