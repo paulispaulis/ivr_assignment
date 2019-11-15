@@ -48,19 +48,19 @@ class Get_Coords:
     oc = deconf[4]
 
     fin_o = np.zeros(3)
-    if o1 == [-1,-1]:
+    if o1 == [-1, -1]:
       print("cant see orange")
       pass
-    elif o2 == [-1,-1]:
+    elif o2 == [-1, -1]:
       print("cant see orange")
       pass
     else:
-      fin_o[0] = o2[1]
-      fin_o[1] = o1[1]
+      fin_o[0] = o2[0]
+      fin_o[1] = o1[0]
       if oc < 1:
-        fin_o[2] = o2[0]
+        fin_o[2] = o2[1]
       else:
-        fin_o[2] = o1[0]
+        fin_o[2] = o1[1]
 
     return fin_o
 
