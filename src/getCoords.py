@@ -42,6 +42,84 @@ class Get_Coords:
       dist2 = np.sum((y_coords_2 - b_coords_2)**2)
       return 2 / np.sqrt(dist2)
 
+  def fin_b_coords(self, decoords1, decoords2, deconf = [1,1,1,1,1]):
+    b1 = decoords1[1]
+    b2 = decoords2[1]
+    bc = deconf[1]
+
+    fin_b = np.zeros(3)
+
+    if (b1 == [-1,-1] and b2 == [-1, -1]):
+      print("can't see blue")
+    elif (b1 == [-1,-1]):
+      fin_b[0] = b2[0]
+      fin_b[3] = b2[1]
+      #TODO figure out the final y coords
+    elif b2 == [-1,-1]:
+      fin_b[1] = b1[0]
+      fin_b[3] = b1[1]
+      #TODO figure out the final x coords
+    else:
+      fin_b[0] = b2[0]
+      fin_b[1] = b1[0]
+      if bc >= 1:
+        fin_b[2] = b1[1]
+      else:
+        fin_b[2] = b2[1]
+    return fin_b
+  
+  def fin_g_coords(self, decoords1, decoords2, deconf = [1,1,1,1,1]):
+    g1 = decoords1[2]
+    g2 = decoords2[2]
+    gc = deconf[2]
+
+    fin_g = np.zeros(3)
+
+    if (g1 == [-1,-1] and g2 == [-1, -1]):
+      print("can't see green")
+    elif (g1 == [-1,-1]):
+      fin_g[0] = g2[0]
+      fin_g[3] = g2[1]
+      #TODO figure out the final y coords
+    elif g2 == [-1,-1]:
+      fin_g[1] = g1[0]
+      fin_g[3] = g1[1]
+      #TODO figure out the final x coords
+    else:
+      fin_g[0] = g2[0]
+      fin_g[1] = g1[0]
+      if gc >= 1:
+        fin_g[2] = g1[1]
+      else:
+        fin_g[2] = g2[1]
+    return fin_g
+
+  def fin_r_coords(self, decoords1, decoords2, deconf = [1,1,1,1,1]):
+    r1 = decoords1[3]
+    r2 = decoords2[3]
+    rc = deconf[3]
+
+    fin_r = np.zeros(3)
+
+    if (r1 == [-1,-1] and r2 == [-1, -1]):
+      print("can't see blue")
+    elif (r1 == [-1,-1]):
+      fin_r[0] = r2[0]
+      fin_r[3] = r2[1]
+      #TODO figure out the final y coords
+    elif r2 == [-1,-1]:
+      fin_r[1] = r1[0]
+      fin_r[3] = r1[1]
+      #TODO figure out the final x coords
+    else:
+      fin_r[0] = r2[0]
+      fin_r[1] = r1[0]
+      if rc >= 1:
+        fin_r[2] = r1[1]
+      else:
+        fin_r[2] = r2[1]
+    return fin_r
+
   def fin_o_coords(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
     o1 = decoords1[4]
     o2 = decoords2[4]
