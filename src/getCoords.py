@@ -18,6 +18,7 @@ class Get_Coords:
     
     self.coords1 = None
     self.coords2 = None
+    self.fin_coords = None
 
     rospy.init_node('coordCalc', anonymous=True)
 
@@ -53,12 +54,14 @@ class Get_Coords:
       print("can't see blue")
     elif (b1 == [-1,-1]):
       fin_b[0] = b2[0]
-      fin_b[3] = b2[1]
-      #TODO figure out the final y coords
+      fin_b[2] = b2[1]
+      #use y coords of yellow as educated gueses
+      fin_b[1] = decoords2[0][1]
     elif b2 == [-1,-1]:
       fin_b[1] = b1[0]
-      fin_b[3] = b1[1]
-      #TODO figure out the final x coords
+      fin_b[2] = b1[1]
+      #use x coords of yellow
+      fin_b[0] = decoords1[0][0]
     else:
       fin_b[0] = b2[0]
       fin_b[1] = b1[0]
@@ -79,12 +82,14 @@ class Get_Coords:
       print("can't see green")
     elif (g1 == [-1,-1]):
       fin_g[0] = g2[0]
-      fin_g[3] = g2[1]
-      #TODO figure out the final y coords
+      fin_g[2] = g2[1]
+      #use y coords of blue
+      fin_g[1] = decoords2[1][1]
     elif g2 == [-1,-1]:
       fin_g[1] = g1[0]
-      fin_g[3] = g1[1]
-      #TODO figure out the final x coords
+      fin_g[2] = g1[1]
+      #use x coords of blue
+      fin_g[0] = decoords1[1][0]
     else:
       fin_g[0] = g2[0]
       fin_g[1] = g1[0]
@@ -102,15 +107,17 @@ class Get_Coords:
     fin_r = np.zeros(3)
 
     if (r1 == [-1,-1] and r2 == [-1, -1]):
-      print("can't see blue")
+      print("can't see red")
     elif (r1 == [-1,-1]):
       fin_r[0] = r2[0]
-      fin_r[3] = r2[1]
-      #TODO figure out the final y coords
+      fin_r[2] = r2[1]
+      #use y coords of green
+      fin_r[1] = decoords2[2][1]
     elif r2 == [-1,-1]:
       fin_r[1] = r1[0]
-      fin_r[3] = r1[1]
-      #TODO figure out the final x coords
+      fin_r[2] = r1[1]
+      #use x coords of green
+      fin_r[0] = decoords1[2][0]
     else:
       fin_r[0] = r2[0]
       fin_r[1] = r1[0]
@@ -185,6 +192,16 @@ class Get_Coords:
         self.decoords(self.coords1, self.coords2)
         print(self.decoords1, self.decoords2)
         
+        #get final coords
+        deconf = np.array([1,1,1,1,1])
+        fin_coords[0] = np.zeros(3)
+        fin_coords[1] = fin_b_coords(decoords1, decoords2, deconf)
+        fin_coords[2] = fin_g_coords(decoords1, decoords2, deconf)
+        fin_coords[3] = fin_r_coords(decoords1, decoords2, deconf)
+        fin_coords[4] = fin_o_coords(decoords1, decoords2, deconf)
+
+        self.getAngles()
+
 
       # Publish the results
     #   try: 
@@ -192,6 +209,20 @@ class Get_Coords:
     #     self.coords_pub1.publish(coords1)
     #   except CvBridgeError as e:
     #     print(e)
+
+  def getAngles(self):
+    v0 = fin_coords[1]
+    v1 = fin_coords[2] - fin_coords[1]
+    v2 = fin_coords[3] - fin_coords[2]
+
+    #v0 and v1 for ja1 calculation
+    #TODO get rotation matrix from vi to v(i+1), equate to atan2, solve for angles (least squares)
+    
+    #using cos and relative coordinates
+    cos_j4 = np.dot(v2,v1) / (np.linalg.norm(v2) * np.linalg.norm(v1))
+    j1 = np.arccos(cos_j4)
+    if fin_coords[3][1] < fin_coords[2][1]:
+      #red is below green
 
 # call the class
 def main(args):
