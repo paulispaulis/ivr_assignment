@@ -22,10 +22,13 @@ class image_converter:
     # initialize a subscriber to recieve messages rom a topic named /robot/camera1/image_raw and use callback function to recieve data
     self.image_sub1 = rospy.Subscriber("/camera1/robot/image_raw",Image,self.callback1)
 
-    self.coords_pub1 = rospy.Publisher("coords_topic1",Float64MultiArray, queue_size=10)
+    self.coords_sub2 = rospy.Subscriber("coords_topic2", Float64MultiArray, self.callback2)
+    self.coords_pub1 = rospy.Publisher("coords_topic12",Float64MultiArray, queue_size=10)
+    # self.sync_coords_pub2 = rospy.Publisher("sync_coords_topic2", Float64MultiArray, queue_size=10)
 
     # initialize the bridge between openCV and ROS
     self.bridge = CvBridge()
+    self.cv_image1 = None
 
 
   # ADDED CODE
@@ -150,34 +153,37 @@ class image_converter:
       self.cv_image1 = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print(e)
-    
+
+  def callback2(self, coords2):
+
+    # print('here')
     # Uncomment if you want to save the image
     #cv2.imwrite('image_copy.png', cv_image)
-
-    im1=cv2.imshow('window1', self.cv_image1)
-    cv2.waitKey(10000)
-
-
-    # ADDED CODE
-    y_coords = self.detect_yellow(self.cv_image1)
-    b_coords = self.detect_blue(self.cv_image1)
-    g_coords = self.detect_green(self.cv_image1)
-    r_coords = self.detect_red(self.cv_image1)
-    o_coords = self.detect_orange(self.cv_image1)
-
-    self.joints1 = Float64MultiArray()
-    self.joints1.data = np.append([], np.array([y_coords, b_coords, g_coords, r_coords, o_coords]))
-    # self.joints1.data = np.array([0,0,0])
-    # print(self.joints1.data)
+    if self.cv_image1 is not None:
+      im1=cv2.imshow('window1', self.cv_image1)
+      cv2.waitKey(10000)
 
 
-    # Publish the results
-    try: 
-      self.image_pub1.publish(self.bridge.cv2_to_imgmsg(self.cv_image1, "bgr8"))
+      # ADDED CODE
+      y_coords = self.detect_yellow(self.cv_image1)
+      b_coords = self.detect_blue(self.cv_image1)
+      g_coords = self.detect_green(self.cv_image1)
+      r_coords = self.detect_red(self.cv_image1)
+      o_coords = self.detect_orange(self.cv_image1)
 
-      self.coords_pub1.publish(self.joints1)
-    except CvBridgeError as e:
-      print(e)
+      self.joints1 = Float64MultiArray()
+      self.joints1.data = np.append(np.array([y_coords, b_coords, g_coords, r_coords, o_coords]), coords2.data)
+      # self.joints1.data = np.array([0,0,0])
+      # print(self.joints1.data)
+
+      # Publish the results
+      try:
+        self.image_pub1.publish(self.bridge.cv2_to_imgmsg(self.cv_image1, "bgr8"))
+
+        self.coords_pub1.publish(self.joints1)
+        # self.sync_coords_pub2.publish(coords2)
+      except CvBridgeError as e:
+        print(e)
 
 # call the class
 def main(args):
