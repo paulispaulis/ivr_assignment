@@ -24,9 +24,9 @@ class Get_Coords:
     # initialize a publisher to send final coordinates for joints
     self.angle_pub = rospy.Publisher("final_angles", Float64MultiArray, queue_size=1)
     # initialize a subscriber to recieve coordinates from camera 1
-    self.coords_sub1 = rospy.Subscriber("coords_topic1", Float64MultiArray, self.callback1)
+    self.coords_sub1 = rospy.Subscriber("coords_topic12", Float64MultiArray, self.callback12)
     # initialize a subscriber to recieve coordinates from camera 2
-    self.coords_sub2 = rospy.Subscriber("coords_topic2", Float64MultiArray, self.callback2)
+    # self.coords_sub2 = rospy.Subscriber("sync_coords_topic2", Float64MultiArray, self.callback2)
 
   def pixel2meter(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
     b_conf = deconf[1]
@@ -89,19 +89,24 @@ class Get_Coords:
     self.decoords1 = decoords1
     self.decoords2 = decoords2
 
-  def callback1(self,data):
+  def callback12(self,data):
     #array in the form of yellow, blue, green, red, orange
-    self.coords1 = data.data
+    coords12 = data.data
+    l12 = len(coords12)
+    self.coords1 = coords12[:l12/2]
+    self.coords2 = coords12[l12/2:]
+
     self.merge_coords()
     
   #recieve coordinates from camera 2
-  def callback2(self,data):
-    self.coords2 = data.data
-    self.merge_coords()
+  # def callback2(self,data):
+  #   self.coords2 = data.data
+  #   self.merge_coords()
   
   def merge_coords(self):
       # print(self.coords1)
       # print(self.coords2)
+      # print('here')
       if self.coords1 is not None and self.coords2 is not None:
         #decode coords1 and coords2 into decoords1 decoords2
         self.decoords(self.coords1, self.coords2)
