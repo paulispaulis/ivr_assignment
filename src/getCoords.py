@@ -239,6 +239,50 @@ class Get_Coords:
     else:
       #in 4th quadrant
       j4 = -j4
+
+  def trans_mat(self, jointAngles):
+    #transformation matrix from frame 0 to 2
+    theta1 = jointAngles[0]
+    theta2 = jointAngles[1]
+    theta3 = jointAngles[2]
+    theta4 = jointAngles[3]
+
+    transform_01 = np.array([[np.cos(theta1), -np.sin(theta1) * np.cos(np.pi/2), np.sin(theta1) * np.sin(np.pi/2), 0],
+    [np.sin(theta1), np.cos(theta1) * np.cos(pi/2), -np.cos(theta1) * np.sin(np.pi/2), 0],
+    [0, np.sin(np.pi/2), np.cos(np.pi/2), 2]
+    [0, 0, 0, 1]])
+
+    transform_12 = np.array([[np.cos(theta2), -np.sin(theta2) * np.cos(np.pi/2), np.sin(theta2) * np.sin(np.pi/2), 0],
+    [np.sin(theta2), np.cos(theta2) * np.cos(pi/2), -np.cos(theta2) * np.sin(np.pi/2), 0],
+    [0, np.sin(np.pi/2), np.cos(np.pi/2), 0]
+    [0, 0, 0, 1]])
+
+    transform_23 = np.array([[np.cos(theta3), -np.sin(theta3) * np.cos(np.pi/2), np.sin(theta3) * np.sin(np.pi/2), 3*np.cos(theta3)],
+    [np.sin(theta3), np.cos(theta3) * np.cos(pi/2), -np.cos(theta3) * np.sin(np.pi/2), 3*np.sin(theta3)],
+    [0, np.sin(np.pi/2), np.cos(np.pi/2), 0]
+    [0, 0, 0, 1]])
+
+    transform_34 = np.array([[np.cos(theta4), -np.sin(theta4) * np.cos(0), np.sin(theta4) * np.sin(0), 2*np.cos(theta4)],
+    [np.sin(theta4), np.cos(theta4) * np.cos(0), -np.cos(theta4) * np.sin(0), 2*np.sin(theta4)],
+    [0, np.sin(0), np.cos(0), 0]
+    [0, 0, 0, 1]])
+
+    #transformation matrix from frame 0 to 3
+    transform_02 = np.matmul(transform_01, transform_12)
+    transform_03 = np.matmul(transform_02, transform_23)
+    #transformation matrix from frame 0 to 4
+    transform_mat = np.matmul(transform_03, transform_34)
+
+  def forward_kinematics(self, jointAngles):
+    trans = self.trans_mat(jointAngles)
+    vec = np.array([[0],[0],[0],[1]])
+    ee = np.matmul(trans, vec)
+    ee_x = ee[0]
+    ee_y = ee[1]
+    ee_z = ee[2]
+
+    return np.array([ee_x, ee_y, ee_z])
+
     
 
 # call the class
