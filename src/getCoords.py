@@ -201,8 +201,6 @@ class Get_Coords:
         fo = self.fin_o_coords(self.decoords1, self.decoords2, deconf)
         self.fin_coords = np.append([], np.array([fy,fb,fg,fr,fo]))
 
-
-
         #self.getAngles()
 
 
