@@ -50,14 +50,14 @@ class Get_Coords:
 
     fin_b = np.zeros(3)
 
-    if (b1 == [-1,-1] and b2 == [-1, -1]):
+    if ((b1 == [-1,-1]).all() and (b2 == [-1, -1]).all()):
       print("can't see blue")
-    elif (b1 == [-1,-1]):
+    elif (b1 == [-1,-1]).all():
       fin_b[0] = b2[0]
       fin_b[2] = b2[1]
       #use y coords of yellow as educated gueses
       fin_b[1] = decoords2[0][1]
-    elif b2 == [-1,-1]:
+    elif (b2 == [-1,-1]).all():
       fin_b[1] = b1[0]
       fin_b[2] = b1[1]
       #use x coords of yellow
@@ -78,14 +78,14 @@ class Get_Coords:
 
     fin_g = np.zeros(3)
 
-    if (g1 == [-1,-1] and g2 == [-1, -1]):
+    if (g1 == [-1,-1]).all() and (g2 == [-1, -1]).all():
       print("can't see green")
-    elif (g1 == [-1,-1]):
+    elif (g1 == [-1,-1]).all():
       fin_g[0] = g2[0]
       fin_g[2] = g2[1]
       #use y coords of blue
       fin_g[1] = decoords2[1][1]
-    elif g2 == [-1,-1]:
+    elif (g2 == [-1,-1]).all():
       fin_g[1] = g1[0]
       fin_g[2] = g1[1]
       #use x coords of blue
@@ -106,14 +106,14 @@ class Get_Coords:
 
     fin_r = np.zeros(3)
 
-    if (r1 == [-1,-1] and r2 == [-1, -1]):
+    if (r1 == [-1,-1]).all() and (r2 == [-1, -1]).all():
       print("can't see red")
-    elif (r1 == [-1,-1]):
+    elif (r1 == [-1,-1]).all():
       fin_r[0] = r2[0]
       fin_r[2] = r2[1]
       #use y coords of green
       fin_r[1] = decoords2[2][1]
-    elif r2 == [-1,-1]:
+    elif (r2 == [-1,-1]).all():
       fin_r[1] = r1[0]
       fin_r[2] = r1[1]
       #use x coords of green
@@ -133,10 +133,10 @@ class Get_Coords:
     oc = deconf[4]
 
     fin_o = np.zeros(3)
-    if o1 == [-1, -1]:
+    if (o1 == [-1, -1]).all():
       print("cant see orange")
       pass
-    elif o2 == [-1, -1]:
+    elif (o2 == [-1, -1]).all():
       print("cant see orange")
       pass
     else:
@@ -195,7 +195,7 @@ class Get_Coords:
       if self.coords1 is not None and self.coords2 is not None:
         #decode coords1 and coords2 into decoords1 decoords2
         self.decoords(self.coords1, self.coords2)
-        print(self.decoords1, self.decoords2)
+        # print(self.decoords1, self.decoords2)
         
         #get final coords
         deconf = np.array([1,1,1,1,1])
@@ -205,6 +205,8 @@ class Get_Coords:
         fr = self.fin_r_coords(self.decoords1, self.decoords2, deconf)
         fo = self.fin_o_coords(self.decoords1, self.decoords2, deconf)
         self.fin_coords = np.append([], np.array([fy,fb,fg,fr,fo]))
+
+        print(self.fin_coords)
 
         #self.getAngles()
 
