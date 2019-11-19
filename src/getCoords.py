@@ -194,13 +194,16 @@ class Get_Coords:
         
         #get final coords
         deconf = np.array([1,1,1,1,1])
-        fin_coords[0] = np.zeros(3)
-        fin_coords[1] = fin_b_coords(decoords1, decoords2, deconf)
-        fin_coords[2] = fin_g_coords(decoords1, decoords2, deconf)
-        fin_coords[3] = fin_r_coords(decoords1, decoords2, deconf)
-        fin_coords[4] = fin_o_coords(decoords1, decoords2, deconf)
+        fy = np.zeros(3)
+        fb = self.fin_b_coords(self.decoords1, self.decoords2, deconf)
+        fg = self.fin_g_coords(self.decoords1, self.decoords2, deconf)
+        fr = self.fin_r_coords(self.decoords1, self.decoords2, deconf)
+        fo = self.fin_o_coords(self.decoords1, self.decoords2, deconf)
+        self.fin_coords = np.append([], np.array([fy,fb,fg,fr,fo]))
 
-        self.getAngles()
+
+
+        #self.getAngles()
 
 
       # Publish the results
@@ -216,13 +219,24 @@ class Get_Coords:
     v2 = fin_coords[3] - fin_coords[2]
 
     #v0 and v1 for ja1 calculation
-    #TODO get rotation matrix from vi to v(i+1), equate to atan2, solve for angles (least squares)
+    #TODO get rotation matrix from vi to v(i+1), equate to atan2, solve for angles (least squares)?
     
     #using cos and relative coordinates
     cos_j4 = np.dot(v2,v1) / (np.linalg.norm(v2) * np.linalg.norm(v1))
-    j1 = np.arccos(cos_j4)
-    if fin_coords[3][1] < fin_coords[2][1]:
-      #red is below green
+    j4 = np.arccos(cos_j4)
+    if fin_coords[3][0] > fin_coords[2][0] and fin_coords[3][1] > fin_coords[2][1]:
+      #angle in 1st quadrant
+      pass
+    elif fin_coords[3][0] < fin_coords[2][0] and fin_coords[3][1] > fin_coords[2][1]:
+      #angle in 2nd quadrant
+      pass
+    elif fin_coords[3][0] < fin_coords[2][0] and fin_coords[3][1] < fin_coords[2][1]:
+      #angle in 3rd quadrant
+      pass
+    else:
+      #in 4th quadrant
+      j4 = -j4
+    
 
 # call the class
 def main(args):
