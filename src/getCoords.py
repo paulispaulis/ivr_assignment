@@ -18,6 +18,7 @@ class Get_Coords:
     
     self.coords1 = None
     self.coords2 = None
+    self.fin_coords = None
 
     rospy.init_node('coordCalc', anonymous=True)
 
@@ -41,6 +42,90 @@ class Get_Coords:
       b_coords_2 = decoords2[1]
       dist2 = np.sum((y_coords_2 - b_coords_2)**2)
       return 2 / np.sqrt(dist2)
+
+  def fin_b_coords(self, decoords1, decoords2, deconf = [1,1,1,1,1]):
+    b1 = decoords1[1]
+    b2 = decoords2[1]
+    bc = deconf[1]
+
+    fin_b = np.zeros(3)
+
+    if (b1 == [-1,-1] and b2 == [-1, -1]):
+      print("can't see blue")
+    elif (b1 == [-1,-1]):
+      fin_b[0] = b2[0]
+      fin_b[2] = b2[1]
+      #use y coords of yellow as educated gueses
+      fin_b[1] = decoords2[0][1]
+    elif b2 == [-1,-1]:
+      fin_b[1] = b1[0]
+      fin_b[2] = b1[1]
+      #use x coords of yellow
+      fin_b[0] = decoords1[0][0]
+    else:
+      fin_b[0] = b2[0]
+      fin_b[1] = b1[0]
+      if bc >= 1:
+        fin_b[2] = b1[1]
+      else:
+        fin_b[2] = b2[1]
+    return fin_b
+  
+  def fin_g_coords(self, decoords1, decoords2, deconf = [1,1,1,1,1]):
+    g1 = decoords1[2]
+    g2 = decoords2[2]
+    gc = deconf[2]
+
+    fin_g = np.zeros(3)
+
+    if (g1 == [-1,-1] and g2 == [-1, -1]):
+      print("can't see green")
+    elif (g1 == [-1,-1]):
+      fin_g[0] = g2[0]
+      fin_g[2] = g2[1]
+      #use y coords of blue
+      fin_g[1] = decoords2[1][1]
+    elif g2 == [-1,-1]:
+      fin_g[1] = g1[0]
+      fin_g[2] = g1[1]
+      #use x coords of blue
+      fin_g[0] = decoords1[1][0]
+    else:
+      fin_g[0] = g2[0]
+      fin_g[1] = g1[0]
+      if gc >= 1:
+        fin_g[2] = g1[1]
+      else:
+        fin_g[2] = g2[1]
+    return fin_g
+
+  def fin_r_coords(self, decoords1, decoords2, deconf = [1,1,1,1,1]):
+    r1 = decoords1[3]
+    r2 = decoords2[3]
+    rc = deconf[3]
+
+    fin_r = np.zeros(3)
+
+    if (r1 == [-1,-1] and r2 == [-1, -1]):
+      print("can't see red")
+    elif (r1 == [-1,-1]):
+      fin_r[0] = r2[0]
+      fin_r[2] = r2[1]
+      #use y coords of green
+      fin_r[1] = decoords2[2][1]
+    elif r2 == [-1,-1]:
+      fin_r[1] = r1[0]
+      fin_r[2] = r1[1]
+      #use x coords of green
+      fin_r[0] = decoords1[2][0]
+    else:
+      fin_r[0] = r2[0]
+      fin_r[1] = r1[0]
+      if rc >= 1:
+        fin_r[2] = r1[1]
+      else:
+        fin_r[2] = r2[1]
+    return fin_r
 
   def fin_o_coords(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
     o1 = decoords1[4]
@@ -112,6 +197,19 @@ class Get_Coords:
         self.decoords(self.coords1, self.coords2)
         print(self.decoords1, self.decoords2)
         
+        #get final coords
+        deconf = np.array([1,1,1,1,1])
+        fy = np.zeros(3)
+        fb = self.fin_b_coords(self.decoords1, self.decoords2, deconf)
+        fg = self.fin_g_coords(self.decoords1, self.decoords2, deconf)
+        fr = self.fin_r_coords(self.decoords1, self.decoords2, deconf)
+        fo = self.fin_o_coords(self.decoords1, self.decoords2, deconf)
+        self.fin_coords = np.append([], np.array([fy,fb,fg,fr,fo]))
+
+
+
+        #self.getAngles()
+
 
       # Publish the results
     #   try: 
@@ -119,6 +217,31 @@ class Get_Coords:
     #     self.coords_pub1.publish(coords1)
     #   except CvBridgeError as e:
     #     print(e)
+
+  def getAngles(self):
+    v0 = fin_coords[1]
+    v1 = fin_coords[2] - fin_coords[1]
+    v2 = fin_coords[3] - fin_coords[2]
+
+    #v0 and v1 for ja1 calculation
+    #TODO get rotation matrix from vi to v(i+1), equate to atan2, solve for angles (least squares)?
+    
+    #using cos and relative coordinates
+    cos_j4 = np.dot(v2,v1) / (np.linalg.norm(v2) * np.linalg.norm(v1))
+    j4 = np.arccos(cos_j4)
+    if fin_coords[3][0] > fin_coords[2][0] and fin_coords[3][1] > fin_coords[2][1]:
+      #angle in 1st quadrant
+      pass
+    elif fin_coords[3][0] < fin_coords[2][0] and fin_coords[3][1] > fin_coords[2][1]:
+      #angle in 2nd quadrant
+      pass
+    elif fin_coords[3][0] < fin_coords[2][0] and fin_coords[3][1] < fin_coords[2][1]:
+      #angle in 3rd quadrant
+      pass
+    else:
+      #in 4th quadrant
+      j4 = -j4
+    
 
 # call the class
 def main(args):
