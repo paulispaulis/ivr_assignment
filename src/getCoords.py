@@ -294,11 +294,11 @@ class Get_Coords:
 
     return np.array([ee_x, ee_y, ee_z])
 
-  def jacobian(self):
+  def jacobian(self, jointAngles):
     def c(i):
-      return np.cos(self.jointAngles[i-1])
+      return np.cos(jointAngles[i-1])
     def s(i):
-      return np.sin(self.jointAngles[i-1])
+      return np.sin(jointAngles[i-1])
 
     j = np.array([[2*(-s(1))*c(2)*c(3)*c(4) + 2*c(1)*s(3)*s(4) + 2*(-s(1))*s(2)*s(4) + 3*(-s(1))*c(2)*c(3) + 3*c(1)*s(3),
       2*c(1)*(-s(2))*c(3)*c(4) + 2*c(1)*c(2)*s(4) + 3*c(1)*(-s(2))*c(3),
@@ -333,7 +333,7 @@ class Get_Coords:
     # estimate error
     self.error = pos_d-pos
     q = self.getAngles() # estimate initial value of joints'
-    J_inv = np.linalg.pinv(self.jacobian())  # calculating the psudeo inverse of Jacobian
+    J_inv = np.linalg.pinv(self.jacobian(q))  # calculating the psudeo inverse of Jacobian
     dq_d =np.dot(J_inv, ( np.dot(K_d,self.error_d.transpose()) + np.dot(K_p,self.error.transpose()) ) )  # control input (angular velocity of joints)
     q_d = q + (dt * dq_d)  # control input (angular position of joints)
     return q_d
