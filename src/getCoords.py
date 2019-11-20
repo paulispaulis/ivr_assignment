@@ -19,6 +19,15 @@ class Get_Coords:
     self.coords1 = None
     self.coords2 = None
     self.fin_coords = None
+    self.jointAngles = None
+
+    # record the begining time
+    self.time_trajectory = rospy.get_time()
+    # initialize errors
+    self.time_previous_step = np.array([rospy.get_time()], dtype='float64')     
+    # initialize error and derivative of error for trajectory tracking  
+    self.error = np.array([0.0,0.0], dtype='float64')  
+    self.error_d = np.array([0.0,0.0], dtype='float64') 
 
     rospy.init_node('coordCalc', anonymous=True)
 
@@ -242,12 +251,12 @@ class Get_Coords:
       #in 4th quadrant
       j4 = -j4
 
-  def trans_mat(self, jointAngles):
+  def trans_mat(self):
     #transformation matrix from frame 0 to 2
-    theta1 = jointAngles[0]
-    theta2 = jointAngles[1]
-    theta3 = jointAngles[2]
-    theta4 = jointAngles[3]
+    theta1 = self.jointAngles[0]
+    theta2 = self.jointAngles[1]
+    theta3 = self.jointAngles[2]
+    theta4 = self.jointAngles[3]
 
     transform_01 = np.array([[np.cos(theta1), -np.sin(theta1) * np.cos(np.pi/2), np.sin(theta1) * np.sin(np.pi/2), 0],
     [np.sin(theta1), np.cos(theta1) * np.cos(pi/2), -np.cos(theta1) * np.sin(np.pi/2), 0],
@@ -275,8 +284,8 @@ class Get_Coords:
     #transformation matrix from frame 0 to 4
     transform_mat = np.matmul(transform_03, transform_34)
 
-  def forward_kinematics(self, jointAngles):
-    trans = self.trans_mat(jointAngles)
+  def forward_kinematics(self):
+    trans = self.trans_mat(self.jointAngles)
     vec = np.array([[0],[0],[0],[1]])
     ee = np.matmul(trans, vec)
     ee_x = ee[0]
@@ -285,11 +294,11 @@ class Get_Coords:
 
     return np.array([ee_x, ee_y, ee_z])
 
-  def jacobian(self, jointAngles):
+  def jacobian(self):
     def c(i):
-      return np.cos(jointAngles[i-1])
+      return np.cos(self.jointAngles[i-1])
     def s(i):
-      return np.sin(jointAngles[i-1])
+      return np.sin(self.jointAngles[i-1])
 
     j = np.array([[2*(-s(1))*c(2)*c(3)*c(4) + 2*c(1)*s(3)*s(4) + 2*(-s(1))*s(2)*s(4) + 3*(-s(1))*c(2)*c(3) + 3*c(1)*s(3),
       2*c(1)*(-s(2))*c(3)*c(4) + 2*c(1)*c(2)*s(4) + 3*c(1)*(-s(2))*c(3),
@@ -304,6 +313,31 @@ class Get_Coords:
       2*s(2)*(-s(3))*c(4) + 3*s(2)*(-s(3)),
       2*s(2)*c(3)*(-s(4)) - 2*c(2)*c(4)]])
     return j
+  
+  def control_closed(self):
+    #TODO: tune P and D gain by trial and error
+    # P gain
+    K_p = np.array([[10,0,0],[0,10,0],[0,0,10]])
+    # D gain
+    K_d = np.array([[0.1,0,0],[0,0.0,0],[0,0,0.1]])
+    # estimate time step
+    cur_time = np.array([rospy.get_time()])
+    dt = cur_time - self.time_previous_step
+    self.time_previous_step = cur_time
+    # robot end-effector position
+    pos = self.fin_coords[3]
+    # desired trajectory, i.e. position of target
+    pos_d= self.fin_coords[4]
+    # estimate derivative of error
+    self.error_d = ((pos_d - pos) - self.error)/dt
+    # estimate error
+    self.error = pos_d-pos
+    q = self.getAngles() # estimate initial value of joints'
+    J_inv = np.linalg.pinv(self.jacobian())  # calculating the psudeo inverse of Jacobian
+    dq_d =np.dot(J_inv, ( np.dot(K_d,self.error_d.transpose()) + np.dot(K_p,self.error.transpose()) ) )  # control input (angular velocity of joints)
+    q_d = q + (dt * dq_d)  # control input (angular position of joints)
+    return q_d
+
 
 # call the class
 def main(args):
