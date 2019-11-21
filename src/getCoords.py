@@ -339,7 +339,33 @@ class Get_Coords:
 
     return np.array([ee_x, ee_y, ee_z])
 
+  def calculate_jacobian(self, jointAngles):
+    c1 = np.cos(jointAngles[0] + np.pi/2)
+    c2 = np.cos(jointAngles[1] + np.pi/2)
+    c3 = np.cos(jointAngles[2])
+    c4 = np.cos(jointAngles[3])
+    s1 = np.sin(jointAngles[0] + np.pi/2)
+    s2 = np.sin(jointAngles[1] + np.pi/2)
+    s3 = np.sin(jointAngles[2])
+    s4 = np.sin(jointAngles[3])
+
+    jacobian = np.array([[2*c2*c3*c4*(-s1) + 2*s3*c4*c1 - 2*s2*s4*(-s1) + 3-c2*c3*(-s1) + 3*s3*c1,
+      2*c1*c3*c4*(-s2) - 2*c1*s4*c2 + 3*c1*c3*(-s2),
+      2*c1*c2*c4*(-s3) + 2*s1*c4*c3 + 3*c1*c2*(-s3) + 3*s1*c3,
+      2*c1*c2*c3*(-s4) + 2*s1*s3*(-s4) - 2*c1*s2*c4
+      ],
+      [2*c2*c3*c4*c1 - 2*c3*c4*(-s1) - 2*s2*s4*c1 + 3*c2*c3*c1 - 3*s3*(-s1),
+      2*s1*c3*c4*(-s2) - 2*s1*s4*c2 + 3*s1*c3*(-s2),
+      2*s1*c2*c4*(-s3) - 2*c1*c4*c3 + 3*s1*c2*(-s3) - 3*c1*c3,
+      2*s1*c2*c3*(-s4) - 2*c1*s3*(-s4) - 2*s1*s2*c4],
+      [0,
+      2*c3*c4*c2 + 2*s4*(-s2) + 3*c3*c2,
+      2*s2*c4*(-s3) + 3*s2*(-s3),
+      2*s2*c3*(-s4) + 2*c2*c4]])
+
+    return jacobian
     
+  
 
 # call the class
 def main(args):
