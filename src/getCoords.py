@@ -20,6 +20,15 @@ class Get_Coords:
     self.coords1 = None
     self.coords2 = None
     self.fin_coords = None
+    self.jointAngles = None
+
+    # record the begining time
+    self.time_trajectory = rospy.get_time()
+    # initialize errors
+    self.time_previous_step = np.array([rospy.get_time()], dtype='float64')     
+    # initialize error and derivative of error for trajectory tracking  
+    self.error = np.array([0.0,0.0], dtype='float64')  
+    self.error_d = np.array([0.0,0.0], dtype='float64') 
 
     rospy.init_node('coordCalc', anonymous=True)
 
@@ -364,8 +373,30 @@ class Get_Coords:
       2*s2*c3*(-s4) + 2*c2*c4]])
 
     return jacobian
-    
   
+  def control_closed(self):
+    #TODO: tune P and D gain by trial and error
+    # P gain
+    K_p = np.array([[10,0,0],[0,10,0],[0,0,10]])
+    # D gain
+    K_d = np.array([[0.1,0,0],[0,0.0,0],[0,0,0.1]])
+    # estimate time step
+    cur_time = np.array([rospy.get_time()])
+    dt = cur_time - self.time_previous_step
+    self.time_previous_step = cur_time
+    # robot end-effector position
+    pos = self.fin_coords[3]
+    # desired trajectory, i.e. position of target
+    pos_d= self.fin_coords[4]
+    # estimate derivative of error
+    self.error_d = ((pos_d - pos) - self.error)/dt
+    # estimate error
+    self.error = pos_d-pos
+    q = self.getAngles() # estimate initial value of joints'
+    J_inv = np.linalg.pinv(self.jacobian(q))  # calculating the psudeo inverse of Jacobian
+    dq_d =np.dot(J_inv, ( np.dot(K_d,self.error_d.transpose()) + np.dot(K_p,self.error.transpose()) ) )  # control input (angular velocity of joints)
+    q_d = q + (dt * dq_d)  # control input (angular position of joints)
+    return q_d
 
 # call the class
 def main(args):
