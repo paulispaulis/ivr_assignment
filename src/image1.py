@@ -160,8 +160,8 @@ class image_converter:
     # Uncomment if you want to save the image
     #cv2.imwrite('image_copy.png', cv_image)
     if self.cv_image1 is not None:
-      im1=cv2.imshow('window1', self.cv_image1)
-      cv2.waitKey(50)
+      # im1=cv2.imshow('window1', self.cv_image1)
+      # cv2.waitKey(10)
 
 
       # ADDED CODE

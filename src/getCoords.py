@@ -25,10 +25,19 @@ class Get_Coords:
 
     # initialize a publisher to send final coordinates for joints
     self.angle_pub = rospy.Publisher("final_angles", Float64MultiArray, queue_size=1)
+
+    self.ox_pub = rospy.Publisher("ox_est", Float64, queue_size=5)
+    self.oy_pub = rospy.Publisher("oy_est", Float64, queue_size=5)
+    self.oz_pub = rospy.Publisher("oz_est", Float64, queue_size=5)
     # initialize a subscriber to recieve coordinates from camera 1
     self.coords_sub1 = rospy.Subscriber("coords_topic12", Float64MultiArray, self.callback12)
+
+    # self.ox_sub = rospy.Subscriber("/target/x_position_controller/command", Float64, self.callbackox)
     # initialize a subscriber to recieve coordinates from camera 2
     # self.coords_sub2 = rospy.Subscriber("sync_coords_topic2", Float64MultiArray, self.callback2)
+
+  # def callbackox(self, data):
+  #   print("ox act ", data.data)
 
   def pixel2meter(self, decoords1, decoords2, deconf=[1,1,1,1,1]):
     b_conf = deconf[1]
@@ -146,10 +155,11 @@ class Get_Coords:
     else:
       fin_o[0] = o2[0]
       fin_o[1] = o1[0]
-      if oc < 1:
-        fin_o[2] = o2[1]
-      else:
+      # if oc > 1:
+      if abs(o1[0] - decoords1[0][0]) >= abs(o2[0] - decoords2[0][0]):
         fin_o[2] = o1[1]
+      else:
+        fin_o[2] = o2[1]
 
     return fin_o
 
@@ -161,11 +171,11 @@ class Get_Coords:
       decoords2.append([coords2[i], coords2[i+1]])
     decoords1, decoords2 = np.array(decoords1), np.array(decoords2)
     a = self.pixel2meter(decoords1, decoords2)
-    print("preA: ", decoords1)
+    # print("preA: ", decoords1)
     decoords1 = decoords1 * a
     decoords2 = decoords2 * a
 
-    print("postA: ", decoords1)
+    # print("postA: ", decoords1)
     y1, y2 = decoords1[0], decoords2[0]
     decoords1 = decoords1 - y1
     decoords2 = decoords2 - y2
@@ -187,17 +197,21 @@ class Get_Coords:
 
     self.merge_coords()
 
-    print('0,0,0,0', self.trans01([0, 0, 0, 0])[0][3], self.trans01([0, 0, 0, 0])[1][3], self.trans01([0, 0, 0, 0])[2][3])
-    # print('boop', self.trans02([0, 0, 0, 0])[0][3], self.trans02([0, 0, 0, 0])[1][3], self.trans02([0, 0, 0, 0])[2][3])
-    print('boop', self.trans03([0,0,0,0])[0][3], self.trans03([0,0,0,0])[1][3], self.trans03([0,0,0,0])[2][3])
-    print('boop', self.trans04([0, 0, 0, 0])[0][3], self.trans04([0, 0, 0, 0])[1][3], self.trans04([0, 0, 0, 0])[2][3])
+    # print('0,0,0,0', self.trans01([0, 0, 0, 0])[0][3], self.trans01([0, 0, 0, 0])[1][3], self.trans01([0, 0, 0, 0])[2][3])
+    # # print('boop', self.trans02([0, 0, 0, 0])[0][3], self.trans02([0, 0, 0, 0])[1][3], self.trans02([0, 0, 0, 0])[2][3])
+    # print('boop', self.trans03([0,0,0,0])[0][3], self.trans03([0,0,0,0])[1][3], self.trans03([0,0,0,0])[2][3])
+    # print('boop', self.trans04([0, 0, 0, 0])[0][3], self.trans04([0, 0, 0, 0])[1][3], self.trans04([0, 0, 0, 0])[2][3])
+    #
+    # print('0,0,0,pi/2', self.trans01([0, 0, 0, 1.57])[0][3], self.trans01([0, 0, 0, 1.57])[1][3], self.trans01([0, 0, 0, 1.57])[2][3])
+    # # print('boop', self.trans02([0, 0, 0, 0])[0][3], self.trans02([0, 0, 0, 0])[1][3], self.trans02([0, 0, 0, 0])[2][3])
+    # print('boop', self.trans03([0, 0, 0, 1.57])[0][3], self.trans03([0, 0, 0, 1.57])[1][3], self.trans03([0, 0, 0, 1.57])[2][3])
+    # print('boop', self.trans04([0, 0, 0, 1.57])[0][3], self.trans04([0, 0, 0, 1.57])[1][3], self.trans04([0, 0, 0, 1.57])[2][3])
 
-    print('0,0,0,pi/2', self.trans01([0, 0, 0, 1.57])[0][3], self.trans01([0, 0, 0, 1.57])[1][3], self.trans01([0, 0, 0, 1.57])[2][3])
-    # print('boop', self.trans02([0, 0, 0, 0])[0][3], self.trans02([0, 0, 0, 0])[1][3], self.trans02([0, 0, 0, 0])[2][3])
-    print('boop', self.trans03([0, 0, 0, 1.57])[0][3], self.trans03([0, 0, 0, 1.57])[1][3], self.trans03([0, 0, 0, 1.57])[2][3])
-    print('boop', self.trans04([0, 0, 0, 1.57])[0][3], self.trans04([0, 0, 0, 1.57])[1][3], self.trans04([0, 0, 0, 1.57])[2][3])
+    # print(self.get_angles())
 
-    print(self.get_angles())
+    self.ox_pub.publish(self.fin_coords[12])
+    self.oy_pub.publish(self.fin_coords[13])
+    self.oz_pub.publish(self.fin_coords[14])
     
   #recieve coordinates from camera 2
   # def callback2(self,data):
@@ -222,7 +236,7 @@ class Get_Coords:
         fo = self.fin_o_coords(self.decoords1, self.decoords2, deconf)
         self.fin_coords = np.append([], np.array([fy,fb,fg,fr,fo]))
 
-        print(self.fin_coords)
+        # print(self.fin_coords)
 
 
       # Publish the results
