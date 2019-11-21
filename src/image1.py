@@ -136,8 +136,8 @@ class image_converter:
     cy = int(M['m01'] / M['m00'])
 
     cv2.circle(image_copy, (cx, cy), 2, (255, 255, 255), -1)
-    # cv2.imshow('window1', image_copy)
-    # cv2.waitKey(10000)
+    cv2.imshow('window1', image_copy)
+    cv2.waitKey(10)
 
     # cv2.drawContours(image, [cnt], 0, (0,255,0), 3)
     # cv2.imshow('window1', image)
