@@ -36,8 +36,8 @@ class image_converter:
     mask = cv2.inRange(image, (0, 100, 100), (50, 255, 255))
     kernel = np.ones((5, 5), np.uint8)
     mask = cv2.dilate(mask, kernel, iterations=2)
-    im1 = cv2.imshow('window1', mask)
-    cv2.waitKey(10000)
+    # im1 = cv2.imshow('window1', mask)
+    # cv2.waitKey(10000)
 
     M = cv2.moments(mask)
     if M['m00'] == 0: return np.array([-1, -1])
@@ -49,8 +49,8 @@ class image_converter:
     mask = cv2.inRange(image, (100, 0, 0), (255, 50, 50))
     kernel = np.ones((5, 5), np.uint8)
     mask = cv2.dilate(mask, kernel, iterations=2)
-    im1 = cv2.imshow('window1', mask)
-    cv2.waitKey(10000)
+    # im1 = cv2.imshow('window1', mask)
+    # cv2.waitKey(10000)
 
     M = cv2.moments(mask)
     if M['m00'] == 0: return np.array([-1, -1])
@@ -62,8 +62,8 @@ class image_converter:
     mask = cv2.inRange(image, (0, 100, 0), (50, 255, 50))
     kernel = np.ones((5, 5), np.uint8)
     mask = cv2.dilate(mask, kernel, iterations=2)
-    im1 = cv2.imshow('window1', mask)
-    cv2.waitKey(10000)
+    # im1 = cv2.imshow('window1', mask)
+    # cv2.waitKey(10000)
 
     M = cv2.moments(mask)
     if M['m00'] == 0: return np.array([-1, -1])
@@ -75,8 +75,8 @@ class image_converter:
     mask = cv2.inRange(image, (0, 0, 100), (50, 50, 255))
     kernel = np.ones((5, 5), np.uint8)
     mask = cv2.dilate(mask, kernel, iterations=2)
-    im1 = cv2.imshow('window1', mask)
-    cv2.waitKey(10000)
+    # im1 = cv2.imshow('window1', mask)
+    # cv2.waitKey(10000)
 
     M = cv2.moments(mask)
     if M['m00'] == 0: return np.array([-1, -1])
@@ -136,8 +136,8 @@ class image_converter:
     cy = int(M['m01'] / M['m00'])
 
     cv2.circle(image_copy, (cx, cy), 2, (255, 255, 255), -1)
-    cv2.imshow('window1', image_copy)
-    cv2.waitKey(10000)
+    # cv2.imshow('window1', image_copy)
+    # cv2.waitKey(10000)
 
     # cv2.drawContours(image, [cnt], 0, (0,255,0), 3)
     # cv2.imshow('window1', image)
@@ -161,7 +161,7 @@ class image_converter:
     #cv2.imwrite('image_copy.png', cv_image)
     if self.cv_image1 is not None:
       im1=cv2.imshow('window1', self.cv_image1)
-      cv2.waitKey(10000)
+      cv2.waitKey(50)
 
 
       # ADDED CODE

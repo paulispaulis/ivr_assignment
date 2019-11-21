@@ -9,7 +9,6 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float64MultiArray, Float64
 from cv_bridge import CvBridge, CvBridgeError
-from scipy.optimize import least_squares
 
 
 class Get_Coords:
@@ -51,14 +50,14 @@ class Get_Coords:
 
     fin_b = np.zeros(3)
 
-    if ((b1 == [-1,-1]).all() and (b2 == [-1, -1]).all()):
+    if (b1 == [-1,-1] and b2 == [-1, -1]):
       print("can't see blue")
-    elif (b1 == [-1,-1]).all():
+    elif (b1 == [-1,-1]):
       fin_b[0] = b2[0]
       fin_b[2] = b2[1]
       #use y coords of yellow as educated gueses
       fin_b[1] = decoords2[0][1]
-    elif (b2 == [-1,-1]).all():
+    elif b2 == [-1,-1]:
       fin_b[1] = b1[0]
       fin_b[2] = b1[1]
       #use x coords of yellow
@@ -66,8 +65,7 @@ class Get_Coords:
     else:
       fin_b[0] = b2[0]
       fin_b[1] = b1[0]
-      # if bc >= 1:
-      if abs(b1[0]-decoords1[0][0]) >= abs(b2[0]-decoords2[0][0]):
+      if bc >= 1:
         fin_b[2] = b1[1]
       else:
         fin_b[2] = b2[1]
@@ -80,14 +78,14 @@ class Get_Coords:
 
     fin_g = np.zeros(3)
 
-    if (g1 == [-1,-1]).all() and (g2 == [-1, -1]).all():
+    if (g1 == [-1,-1] and g2 == [-1, -1]):
       print("can't see green")
-    elif (g1 == [-1,-1]).all():
+    elif (g1 == [-1,-1]):
       fin_g[0] = g2[0]
       fin_g[2] = g2[1]
       #use y coords of blue
       fin_g[1] = decoords2[1][1]
-    elif (g2 == [-1,-1]).all():
+    elif g2 == [-1,-1]:
       fin_g[1] = g1[0]
       fin_g[2] = g1[1]
       #use x coords of blue
@@ -95,8 +93,7 @@ class Get_Coords:
     else:
       fin_g[0] = g2[0]
       fin_g[1] = g1[0]
-      # if gc >= 1:
-      if abs(g1[0] - decoords1[0][0]) >= abs(g2[0] - decoords2[0][0]):
+      if gc >= 1:
         fin_g[2] = g1[1]
       else:
         fin_g[2] = g2[1]
@@ -109,14 +106,14 @@ class Get_Coords:
 
     fin_r = np.zeros(3)
 
-    if (r1 == [-1,-1]).all() and (r2 == [-1, -1]).all():
+    if (r1 == [-1,-1] and r2 == [-1, -1]):
       print("can't see red")
-    elif (r1 == [-1,-1]).all():
+    elif (r1 == [-1,-1]):
       fin_r[0] = r2[0]
       fin_r[2] = r2[1]
       #use y coords of green
       fin_r[1] = decoords2[2][1]
-    elif (r2 == [-1,-1]).all():
+    elif r2 == [-1,-1]:
       fin_r[1] = r1[0]
       fin_r[2] = r1[1]
       #use x coords of green
@@ -124,8 +121,7 @@ class Get_Coords:
     else:
       fin_r[0] = r2[0]
       fin_r[1] = r1[0]
-      # if rc >= 1:
-      if abs(r1[0] - decoords1[0][0]) >= abs(r2[0] - decoords2[0][0]):
+      if rc >= 1:
         fin_r[2] = r1[1]
       else:
         fin_r[2] = r2[1]
@@ -137,10 +133,10 @@ class Get_Coords:
     oc = deconf[4]
 
     fin_o = np.zeros(3)
-    if (o1 == [-1, -1]).all():
+    if o1 == [-1, -1]:
       print("cant see orange")
       pass
-    elif (o2 == [-1, -1]).all():
+    elif o2 == [-1, -1]:
       print("cant see orange")
       pass
     else:
@@ -186,18 +182,6 @@ class Get_Coords:
     self.coords2 = coords12[l12/2:]
 
     self.merge_coords()
-
-    print('0,0,0,0', self.trans01([0, 0, 0, 0])[0][3], self.trans01([0, 0, 0, 0])[1][3], self.trans01([0, 0, 0, 0])[2][3])
-    # print('boop', self.trans02([0, 0, 0, 0])[0][3], self.trans02([0, 0, 0, 0])[1][3], self.trans02([0, 0, 0, 0])[2][3])
-    print('boop', self.trans03([0,0,0,0])[0][3], self.trans03([0,0,0,0])[1][3], self.trans03([0,0,0,0])[2][3])
-    print('boop', self.trans04([0, 0, 0, 0])[0][3], self.trans04([0, 0, 0, 0])[1][3], self.trans04([0, 0, 0, 0])[2][3])
-
-    print('0,0,0,pi/2', self.trans01([0, 0, 0, 1.57])[0][3], self.trans01([0, 0, 0, 1.57])[1][3], self.trans01([0, 0, 0, 1.57])[2][3])
-    # print('boop', self.trans02([0, 0, 0, 0])[0][3], self.trans02([0, 0, 0, 0])[1][3], self.trans02([0, 0, 0, 0])[2][3])
-    print('boop', self.trans03([0, 0, 0, 1.57])[0][3], self.trans03([0, 0, 0, 1.57])[1][3], self.trans03([0, 0, 0, 1.57])[2][3])
-    print('boop', self.trans04([0, 0, 0, 1.57])[0][3], self.trans04([0, 0, 0, 1.57])[1][3], self.trans04([0, 0, 0, 1.57])[2][3])
-
-    print(self.get_angles())
     
   #recieve coordinates from camera 2
   # def callback2(self,data):
@@ -211,7 +195,7 @@ class Get_Coords:
       if self.coords1 is not None and self.coords2 is not None:
         #decode coords1 and coords2 into decoords1 decoords2
         self.decoords(self.coords1, self.coords2)
-        # print(self.decoords1, self.decoords2)
+        print(self.decoords1, self.decoords2)
         
         #get final coords
         deconf = np.array([1,1,1,1,1])
@@ -222,7 +206,7 @@ class Get_Coords:
         fo = self.fin_o_coords(self.decoords1, self.decoords2, deconf)
         self.fin_coords = np.append([], np.array([fy,fb,fg,fr,fo]))
 
-        print(self.fin_coords)
+        #self.getAngles()
 
 
       # Publish the results
@@ -232,55 +216,29 @@ class Get_Coords:
     #   except CvBridgeError as e:
     #     print(e)
 
-  def trans_obs_diff(self, thetas):
-    gtx = self.trans03(thetas)[0][3]
-    gty = self.trans03(thetas)[1][3]
-    gtz = self.trans03(thetas)[2][3]
-    gox = self.fin_coords[6]
-    goy = self.fin_coords[7]
-    goz = self.fin_coords[8]
-    rtx = self.trans04(thetas)[0][3]
-    rty = self.trans04(thetas)[1][3]
-    rtz = self.trans04(thetas)[2][3]
-    rox = self.fin_coords[9]
-    roy = self.fin_coords[10]
-    roz = self.fin_coords[11]
-    return np.array([gtx-gox, gty-goy, gtz-goz, rtx-rox, rty-roy, rtz-roz])
+  def getAngles(self):
+    v0 = fin_coords[1]
+    v1 = fin_coords[2] - fin_coords[1]
+    v2 = fin_coords[3] - fin_coords[2]
 
-  def trans01(self, thetas):
-    return np.array([[np.cos(thetas[0]+np.pi/2), -np.sin(thetas[0]+np.pi/2) * np.cos(np.pi/2), np.sin(thetas[0]+np.pi/2) * np.sin(np.pi/2), 0],
-    [np.sin(thetas[0]+np.pi/2), np.cos(thetas[0]+np.pi/2) * np.cos(np.pi/2), -np.cos(thetas[0]+np.pi/2) * np.sin(np.pi/2), 0],
-    [0, np.sin(np.pi/2), np.cos(np.pi/2), 2],
-    [0, 0, 0, 1]])
-
-  def trans12(self, thetas):
-    return np.array([[np.cos(thetas[1]+np.pi/2), -np.sin(thetas[1]+np.pi/2) * np.cos(np.pi/2), np.sin(thetas[1]+np.pi/2) * np.sin(np.pi/2), 0],
-    [np.sin(thetas[1]+np.pi/2), np.cos(thetas[1]+np.pi/2) * np.cos(np.pi/2), -np.cos(thetas[1]+np.pi/2) * np.sin(np.pi/2), 0],
-    [0, np.sin(np.pi/2), np.cos(np.pi/2), 0],
-    [0, 0, 0, 1]])
-
-  def trans23(self, thetas):
-    return np.array([[np.cos(thetas[2]), -np.sin(thetas[2]) * np.cos(-np.pi/2), np.sin(thetas[2]) * np.sin(-np.pi/2), 3*np.cos(thetas[2])],
-    [np.sin(thetas[2]), np.cos(thetas[2]) * np.cos(-np.pi/2), -np.cos(thetas[2]) * np.sin(-np.pi/2), 3*np.sin(thetas[2])],
-    [0, np.sin(-np.pi/2), np.cos(-np.pi/2), 0],
-    [0, 0, 0, 1]])
-
-  def trans34(self, thetas):
-    return np.array([[np.cos(thetas[3]), -np.sin(thetas[3]) * np.cos(0), np.sin(thetas[3]) * np.sin(0), 2*np.cos(thetas[3])],
-    [np.sin(thetas[3]), np.cos(thetas[3]) * np.cos(0), -np.cos(thetas[3]) * np.sin(0), 2*np.sin(thetas[3])],
-    [0, np.sin(0), np.cos(0), 0],
-    [0, 0, 0, 1]])
-
-  def trans03(self, thetas):
-    trans02 = np.matmul(self.trans01(thetas), self.trans12(thetas))
-    return np.matmul(trans02, self.trans23(thetas))
-
-  def trans04(self, thetas):
-    return np.matmul(self.trans03(thetas), self.trans34(thetas))
-
-  def get_angles(self):
-    res = least_squares(self.trans_obs_diff, np.array([0,0,0,0]), bounds=([-np.pi, -np.pi/2, -np.pi/2, -np.pi/2], [np.pi, np.pi/2, np.pi/2, np.pi/2]))
-    return res.x
+    #v0 and v1 for ja1 calculation
+    #TODO get rotation matrix from vi to v(i+1), equate to atan2, solve for angles (least squares)?
+    
+    #using cos and relative coordinates
+    cos_j4 = np.dot(v2,v1) / (np.linalg.norm(v2) * np.linalg.norm(v1))
+    j4 = np.arccos(cos_j4)
+    if fin_coords[3][0] > fin_coords[2][0] and fin_coords[3][1] > fin_coords[2][1]:
+      #angle in 1st quadrant
+      pass
+    elif fin_coords[3][0] < fin_coords[2][0] and fin_coords[3][1] > fin_coords[2][1]:
+      #angle in 2nd quadrant
+      pass
+    elif fin_coords[3][0] < fin_coords[2][0] and fin_coords[3][1] < fin_coords[2][1]:
+      #angle in 3rd quadrant
+      pass
+    else:
+      #in 4th quadrant
+      j4 = -j4
 
   def trans_mat(self, jointAngles):
     #transformation matrix from frame 0 to 2
