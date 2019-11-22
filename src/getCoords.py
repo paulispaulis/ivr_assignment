@@ -42,6 +42,10 @@ class Get_Coords:
     self.oy_pub = rospy.Publisher("oy_est", Float64, queue_size=5)
     self.oz_pub = rospy.Publisher("oz_est", Float64, queue_size=5)
 
+    self.rx_pub = rospy.Publisher("rx_est", Float64, queue_size=5)
+    self.ry_pub = rospy.Publisher("ry_est", Float64, queue_size=5)
+    self.rz_pub = rospy.Publisher("rz_est", Float64, queue_size=5)
+
     self.joint1_pub = rospy.Publisher("/robot/joint1_position_controller/command", Float64, queue_size=10)
     self.joint2_pub = rospy.Publisher("/robot/joint2_position_controller/command", Float64, queue_size=10)
     self.joint3_pub = rospy.Publisher("/robot/joint3_position_controller/command", Float64, queue_size=10)
@@ -234,13 +238,13 @@ class Get_Coords:
     q = self.control_closed()
     q_smooth = q%(2*np.pi)
     q_smooth[q_smooth>np.pi] = q_smooth[q_smooth>np.pi]-(2*np.pi)
-    # for i in range(1, 4):
-    #   if abs(q_smooth[i]) > np.pi/2:
-    #     if q_smooth[i] > 0:
-    #       q_smooth[i] = np.pi/2
-    #     else:
-    #       q_smooth[i] = -np.pi/2
-    print(q_smooth)
+    for i in range(1, 4):
+      if abs(q_smooth[i]) > np.pi/2:
+        if q_smooth[i] > 0:
+          q_smooth[i] = np.pi/2
+        else:
+          q_smooth[i] = -np.pi/2
+    # print(q_smooth)
     self.current_q = np.array(q_smooth)
     q = q_smooth
     self.joint1 = Float64()
@@ -256,6 +260,10 @@ class Get_Coords:
     self.joint2_pub.publish(self.joint2)
     self.joint3_pub.publish(self.joint3)
     self.joint4_pub.publish(self.joint4)
+
+    self.rx_pub.publish(self.fin_coords[9])
+    self.ry_pub.publish(self.fin_coords[10])
+    self.rz_pub.publish(self.fin_coords[11])
     
   #recieve coordinates from camera 2
   # def callback2(self,data):
@@ -337,93 +345,71 @@ class Get_Coords:
     return np.matmul(self.trans03(thetas), self.trans34(thetas))
 
   def get_angles(self):
-    # res = least_squares(self.trans_obs_diff, self.current_q,
-    #                     bounds=([-np.pi, -np.pi / 2, -np.pi / 2, -np.pi / 2], [np.pi, np.pi / 2, np.pi / 2, np.pi / 2]))
     res = least_squares(self.trans_obs_diff, self.current_q,
-                        bounds=([-np.pi, -np.pi, -np.pi, -np.pi], [np.pi, np.pi, np.pi, np.pi]))
+                        bounds=([-np.pi, -np.pi / 2, -np.pi / 2, -np.pi / 2], [np.pi, np.pi / 2, np.pi / 2, np.pi / 2]))
+    # res = least_squares(self.trans_obs_diff, self.current_q,
+    #                     bounds=([-np.pi, -np.pi, -np.pi, -np.pi], [np.pi, np.pi, np.pi, np.pi]))
     return res.x
 
-  def trans_mat(self, jointAngles):
-    #transformation matrix from frame 0 to 2
-    theta1 = jointAngles[0]
-    theta2 = jointAngles[1]
-    theta3 = jointAngles[2]
-    theta4 = jointAngles[3]
-
-    transform_01 = np.array([[np.cos(theta1), -np.sin(theta1) * np.cos(np.pi/2), np.sin(theta1) * np.sin(np.pi/2), 0],
-    [np.sin(theta1), np.cos(theta1) * np.cos(pi/2), -np.cos(theta1) * np.sin(np.pi/2), 0],
-    [0, np.sin(np.pi/2), np.cos(np.pi/2), 2]
-    [0, 0, 0, 1]])
-
-    transform_12 = np.array([[np.cos(theta2), -np.sin(theta2) * np.cos(np.pi/2), np.sin(theta2) * np.sin(np.pi/2), 0],
-    [np.sin(theta2), np.cos(theta2) * np.cos(pi/2), -np.cos(theta2) * np.sin(np.pi/2), 0],
-    [0, np.sin(np.pi/2), np.cos(np.pi/2), 0]
-    [0, 0, 0, 1]])
-
-    transform_23 = np.array([[np.cos(theta3), -np.sin(theta3) * np.cos(np.pi/2), np.sin(theta3) * np.sin(np.pi/2), 3*np.cos(theta3)],
-    [np.sin(theta3), np.cos(theta3) * np.cos(pi/2), -np.cos(theta3) * np.sin(np.pi/2), 3*np.sin(theta3)],
-    [0, np.sin(np.pi/2), np.cos(np.pi/2), 0]
-    [0, 0, 0, 1]])
-
-    transform_34 = np.array([[np.cos(theta4), -np.sin(theta4) * np.cos(0), np.sin(theta4) * np.sin(0), 2*np.cos(theta4)],
-    [np.sin(theta4), np.cos(theta4) * np.cos(0), -np.cos(theta4) * np.sin(0), 2*np.sin(theta4)],
-    [0, np.sin(0), np.cos(0), 0]
-    [0, 0, 0, 1]])
-
-    #transformation matrix from frame 0 to 3
-    transform_02 = np.matmul(transform_01, transform_12)
-    transform_03 = np.matmul(transform_02, transform_23)
-    #transformation matrix from frame 0 to 4
-    transform_mat = np.matmul(transform_03, transform_34)
-
-  def forward_kinematics(self, jointAngles):
-    trans = self.trans_mat(jointAngles)
-    vec = np.array([[0],[0],[0],[1]])
-    ee = np.matmul(trans, vec)
-    ee_x = ee[0]
-    ee_y = ee[1]
-    ee_z = ee[2]
-
-    return np.array([ee_x, ee_y, ee_z])
-
   def calculate_jacobian(self, jointAngles):
-    c1 = np.cos(jointAngles[0] + np.pi/2)
-    c2 = np.cos(jointAngles[1] + np.pi/2)
+    c1 = np.cos(jointAngles[0])
+    c2 = np.cos(jointAngles[1])
     c3 = np.cos(jointAngles[2])
     c4 = np.cos(jointAngles[3])
-    s1 = np.sin(jointAngles[0] + np.pi/2)
-    s2 = np.sin(jointAngles[1] + np.pi/2)
+    s1 = np.sin(jointAngles[0])
+    s2 = np.sin(jointAngles[1])
     s3 = np.sin(jointAngles[2])
     s4 = np.sin(jointAngles[3])
 
-    jacobian = np.array([[2*c2*c3*c4*(-s1) + 2*s3*c4*c1 - 2*s2*s4*(-s1) + 3-c2*c3*(-s1) + 3*s3*c1,
-      2*c1*c3*c4*(-s2) - 2*c1*s4*c2 + 3*c1*c3*(-s2),
-      2*c1*c2*c4*(-s3) + 2*s1*c4*c3 + 3*c1*c2*(-s3) + 3*s1*c3,
-      2*c1*c2*c3*(-s4) + 2*s1*s3*(-s4) - 2*c1*s2*c4
-      ],
-      [2*c2*c3*c4*c1 - 2*c3*c4*(-s1) - 2*s2*s4*c1 + 3*c2*c3*c1 - 3*s3*(-s1),
-      2*s1*c3*c4*(-s2) - 2*s1*s4*c2 + 3*s1*c3*(-s2),
-      2*s1*c2*c4*(-s3) - 2*c1*c4*c3 + 3*s1*c2*(-s3) - 3*c1*c3,
-      2*s1*c2*c3*(-s4) - 2*c1*s3*(-s4) - 2*s1*s2*c4],
+    jacobian = np.array([
+      [3*c1*s2*c3+2*c1*s2*c3*c4-3*s1*s3-2*s1*s3*c4+2*c1*c2*s4,
+       3*s1*c2*c3+2*s1*c2*c3*c4-2*s1*s2*s4,
+       -3*s1*s2*s3-2*s1*s2*s3*c4+3*c1*c3+2*c1*c3*c4,
+       -2*s1*s2*c3*s4-2*c1*s3*s4+2*s1*c2*c4],
+      [3*s1*s2*c3+2*s1*s2*c3*c4-3*s1*s3-2*s1*s3*c4+2*s1*c2*s4,
+       -3*c1*c2*c3-2*c1*c2*c3*c4+2*c1*s2*s4,
+       3*c1*s2*s3+2*c1*s2*s3*c4+3*c1*c3+2*c1*c3*c4,
+       2*c1*s2*c3*s4-2*c1*s3*s4-2*c1*c2*c4],
       [0,
-      2*c3*c4*c2 + 2*s4*(-s2) + 3*c3*c2,
-      2*s2*c4*(-s3) + 3*s2*(-s3),
-      2*s2*c3*(-s4) + 2*c2*c4]])
+       -3*s2*c3-2*s2*c3*c4-2*c2*s4,
+       -3*c2*s3-2*c2*s3*c4,
+       -2*c2*c3*s4-2*s2*c4]
+    ])
+
+    # jacobian = np.array([[2*s2*c3*c4*(-c1) - 2*s3*c4*s1 - 2*c2*s4*(-c1) + 3*s2*c3*(-c1) - 3*s3*s1,
+    #   2*s1*c3*c4*(-c2) - 2*s1*s4*s2 + 3*s1*c3*(-c2),
+    #   2*s1*s2*c4*(-s3) - 2*c1*c4*c3 + 3*s1*s2*(-s3) - 3*c1*c3,
+    #   2*s1*s2*c3*(-s4) - 2*c1*s3*(-s4) - 2*s1*c2*c4
+    #   ],
+    #   [2*s2*c3*c4*s1 + 2*c3*c4*(-c1) - 2*c2*s4*s1 + 3*s2*c3*s1 + 3*s3*(-c1),
+    #   2*c1*c3*c4*(-c2) - 2*c1*s4*s2 + 3*c1*c3*(-c2),
+    #   2*c1*s2*c4*(-s3) + 2*s1*c4*c3 + 3*c1*s2*(-s3) + 3*s1*c3,
+    #   2*c1*s2*c3*(-s4) + 2*s1*s3*(-s4) - 2*c1*c2*c4],
+    #   [0,
+    #   -2*c3*c4*s2 - 2*s4*(-c2) - 3*c3*s2,
+    #   -2*c2*c4*(-s3) - 3*c2*(-s3),
+    #   -2*c2*c3*(-s4) - 2*s2*c4]])
 
     return jacobian
   
   def control_closed(self):
     #TODO: tune P and D gain by trial and error
     # P gain
-    K_p = np.array([[5,0,0],[0,5,0],[0,0,5]])
+    K_p = np.array([[1,0,0],[0,1,0],[0,0,1]])
     # D gain
-    K_d = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
+    K_d = np.array([[0.05,0,0],[0,0.01,0],[0,0,0.1]])
     # estimate time step
     cur_time = np.array([rospy.get_time()])
     dt = cur_time - self.time_previous_step
+    print(dt)
+    if dt < 0.0005:
+      cv2.waitKey(50)
+      cur_time = np.array([rospy.get_time()])
+      dt = cur_time - self.time_previous_step
+      print('fixed ', dt)
     self.time_previous_step = cur_time
-    if dt < 0.00001:
-      dt = 0.001
+    # if dt < 0.00001:
+    #   dt = 0.001
     # robot end-effector position
     pos = self.fin_coords[9:12]
     # desired trajectory, i.e. position of target

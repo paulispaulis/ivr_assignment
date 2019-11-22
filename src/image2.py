@@ -103,8 +103,8 @@ class image_converter:
     cy = int(M['m01'] / M['m00'])
 
     cv2.circle(image_copy, (cx, cy), 2, (255, 255, 255), -1)
-    cv2.imshow('window2', image_copy)
-    cv2.waitKey(10)
+    # cv2.imshow('window2', image_copy)
+    # cv2.waitKey(10)
 
     return np.array([cx, cy])
 
