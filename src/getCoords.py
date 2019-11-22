@@ -235,35 +235,37 @@ class Get_Coords:
     self.oy_pub.publish(self.fin_coords[13])
     self.oz_pub.publish(self.fin_coords[14])
 
-    q = self.control_closed()
-    q_smooth = q%(2*np.pi)
-    q_smooth[q_smooth>np.pi] = q_smooth[q_smooth>np.pi]-(2*np.pi)
-    for i in range(1, 4):
-      if abs(q_smooth[i]) > np.pi/2:
-        if q_smooth[i] > 0:
-          q_smooth[i] = np.pi/2
-        else:
-          q_smooth[i] = -np.pi/2
-    # print(q_smooth)
-    self.current_q = np.array(q_smooth)
-    q = q_smooth
-    self.joint1 = Float64()
-    self.joint1.data = q[0]
-    self.joint2 = Float64()
-    self.joint2.data = q[1]
-    self.joint3 = Float64()
-    self.joint3.data = q[2]
-    self.joint4 = Float64()
-    self.joint4.data = q[3]
+    # q = self.control_closed()
+    # q_smooth = q%(2*np.pi)
+    # q_smooth[q_smooth>np.pi] = q_smooth[q_smooth>np.pi]-(2*np.pi)
+    # for i in range(1, 4):
+    #   if abs(q_smooth[i]) > np.pi/2:
+    #     if q_smooth[i] > 0:
+    #       q_smooth[i] = np.pi/2
+    #     else:
+    #       q_smooth[i] = -np.pi/2
+    # # print(q_smooth)
+    # self.current_q = np.array(q_smooth)
+    # q = q_smooth
+    # self.joint1 = Float64()
+    # self.joint1.data = q[0]
+    # self.joint2 = Float64()
+    # self.joint2.data = q[1]
+    # self.joint3 = Float64()
+    # self.joint3.data = q[2]
+    # self.joint4 = Float64()
+    # self.joint4.data = q[3]
 
-    self.joint1_pub.publish(self.joint1)
-    self.joint2_pub.publish(self.joint2)
-    self.joint3_pub.publish(self.joint3)
-    self.joint4_pub.publish(self.joint4)
+    # self.joint1_pub.publish(self.joint1)
+    # self.joint2_pub.publish(self.joint2)
+    # self.joint3_pub.publish(self.joint3)
+    # self.joint4_pub.publish(self.joint4)
 
     self.rx_pub.publish(self.fin_coords[9])
     self.ry_pub.publish(self.fin_coords[10])
     self.rz_pub.publish(self.fin_coords[11])
+
+    self.compare_fk(self.get_angles())
     
   #recieve coordinates from camera 2
   # def callback2(self,data):
@@ -345,7 +347,7 @@ class Get_Coords:
     return np.matmul(self.trans03(thetas), self.trans34(thetas))
 
   def fk_ee_pos(self, jointAngles):
-    trans_mat = trans04(jointAngles)
+    trans_mat = self.trans04(jointAngles)
     ee_x = trans_mat[0][3]
     ee_y = trans_mat[1][3]
     ee_z = trans_mat[2][3]
