@@ -20,8 +20,20 @@ class Get_Coords:
     self.coords1 = None
     self.coords2 = None
     self.fin_coords = None
+    self.jointAngles = None
+    self.current_q = np.array([0, 0, 0, 0])
 
     rospy.init_node('coordCalc', anonymous=True)
+
+    # record the begining time
+    self.time_trajectory = rospy.get_time()
+    # initialize errors
+    self.time_previous_step = np.array([rospy.get_time()], dtype='float64')     
+    # initialize error and derivative of error for trajectory tracking  
+    self.error = np.array([0.0,0.0, 0.], dtype='float64')
+    self.error_d = np.array([0.0,0.0, 0.], dtype='float64')
+
+
 
     # initialize a publisher to send final coordinates for joints
     self.angle_pub = rospy.Publisher("final_angles", Float64MultiArray, queue_size=1)
@@ -29,6 +41,11 @@ class Get_Coords:
     self.ox_pub = rospy.Publisher("ox_est", Float64, queue_size=5)
     self.oy_pub = rospy.Publisher("oy_est", Float64, queue_size=5)
     self.oz_pub = rospy.Publisher("oz_est", Float64, queue_size=5)
+
+    self.joint1_pub = rospy.Publisher("/robot/joint1_position_controller/command", Float64, queue_size=10)
+    self.joint2_pub = rospy.Publisher("/robot/joint2_position_controller/command", Float64, queue_size=10)
+    self.joint3_pub = rospy.Publisher("/robot/joint3_position_controller/command", Float64, queue_size=10)
+    self.joint4_pub = rospy.Publisher("/robot/joint4_position_controller/command", Float64, queue_size=10)
     # initialize a subscriber to recieve coordinates from camera 1
     self.coords_sub1 = rospy.Subscriber("coords_topic12", Float64MultiArray, self.callback12)
 
@@ -209,9 +226,36 @@ class Get_Coords:
 
     # print(self.get_angles())
 
+
     self.ox_pub.publish(self.fin_coords[12])
     self.oy_pub.publish(self.fin_coords[13])
     self.oz_pub.publish(self.fin_coords[14])
+
+    q = self.control_closed()
+    q_smooth = q%(2*np.pi)
+    q_smooth[q_smooth>np.pi] = q_smooth[q_smooth>np.pi]-(2*np.pi)
+    # for i in range(1, 4):
+    #   if abs(q_smooth[i]) > np.pi/2:
+    #     if q_smooth[i] > 0:
+    #       q_smooth[i] = np.pi/2
+    #     else:
+    #       q_smooth[i] = -np.pi/2
+    print(q_smooth)
+    self.current_q = np.array(q_smooth)
+    q = q_smooth
+    self.joint1 = Float64()
+    self.joint1.data = q[0]
+    self.joint2 = Float64()
+    self.joint2.data = q[1]
+    self.joint3 = Float64()
+    self.joint3.data = q[2]
+    self.joint4 = Float64()
+    self.joint4.data = q[3]
+
+    self.joint1_pub.publish(self.joint1)
+    self.joint2_pub.publish(self.joint2)
+    self.joint3_pub.publish(self.joint3)
+    self.joint4_pub.publish(self.joint4)
     
   #recieve coordinates from camera 2
   # def callback2(self,data):
@@ -293,7 +337,10 @@ class Get_Coords:
     return np.matmul(self.trans03(thetas), self.trans34(thetas))
 
   def get_angles(self):
-    res = least_squares(self.trans_obs_diff, np.array([0,0,0,0]), bounds=([-np.pi, -np.pi/2, -np.pi/2, -np.pi/2], [np.pi, np.pi/2, np.pi/2, np.pi/2]))
+    # res = least_squares(self.trans_obs_diff, self.current_q,
+    #                     bounds=([-np.pi, -np.pi / 2, -np.pi / 2, -np.pi / 2], [np.pi, np.pi / 2, np.pi / 2, np.pi / 2]))
+    res = least_squares(self.trans_obs_diff, self.current_q,
+                        bounds=([-np.pi, -np.pi, -np.pi, -np.pi], [np.pi, np.pi, np.pi, np.pi]))
     return res.x
 
   def trans_mat(self, jointAngles):
@@ -339,7 +386,57 @@ class Get_Coords:
 
     return np.array([ee_x, ee_y, ee_z])
 
-    
+  def calculate_jacobian(self, jointAngles):
+    c1 = np.cos(jointAngles[0] + np.pi/2)
+    c2 = np.cos(jointAngles[1] + np.pi/2)
+    c3 = np.cos(jointAngles[2])
+    c4 = np.cos(jointAngles[3])
+    s1 = np.sin(jointAngles[0] + np.pi/2)
+    s2 = np.sin(jointAngles[1] + np.pi/2)
+    s3 = np.sin(jointAngles[2])
+    s4 = np.sin(jointAngles[3])
+
+    jacobian = np.array([[2*c2*c3*c4*(-s1) + 2*s3*c4*c1 - 2*s2*s4*(-s1) + 3-c2*c3*(-s1) + 3*s3*c1,
+      2*c1*c3*c4*(-s2) - 2*c1*s4*c2 + 3*c1*c3*(-s2),
+      2*c1*c2*c4*(-s3) + 2*s1*c4*c3 + 3*c1*c2*(-s3) + 3*s1*c3,
+      2*c1*c2*c3*(-s4) + 2*s1*s3*(-s4) - 2*c1*s2*c4
+      ],
+      [2*c2*c3*c4*c1 - 2*c3*c4*(-s1) - 2*s2*s4*c1 + 3*c2*c3*c1 - 3*s3*(-s1),
+      2*s1*c3*c4*(-s2) - 2*s1*s4*c2 + 3*s1*c3*(-s2),
+      2*s1*c2*c4*(-s3) - 2*c1*c4*c3 + 3*s1*c2*(-s3) - 3*c1*c3,
+      2*s1*c2*c3*(-s4) - 2*c1*s3*(-s4) - 2*s1*s2*c4],
+      [0,
+      2*c3*c4*c2 + 2*s4*(-s2) + 3*c3*c2,
+      2*s2*c4*(-s3) + 3*s2*(-s3),
+      2*s2*c3*(-s4) + 2*c2*c4]])
+
+    return jacobian
+  
+  def control_closed(self):
+    #TODO: tune P and D gain by trial and error
+    # P gain
+    K_p = np.array([[5,0,0],[0,5,0],[0,0,5]])
+    # D gain
+    K_d = np.array([[0.1,0,0],[0,0.1,0],[0,0,0.1]])
+    # estimate time step
+    cur_time = np.array([rospy.get_time()])
+    dt = cur_time - self.time_previous_step
+    self.time_previous_step = cur_time
+    if dt < 0.00001:
+      dt = 0.001
+    # robot end-effector position
+    pos = self.fin_coords[9:12]
+    # desired trajectory, i.e. position of target
+    pos_d= self.fin_coords[12:15]
+    # estimate derivative of error
+    self.error_d = ((pos_d - pos) - self.error)/dt
+    # estimate error
+    self.error = pos_d-pos
+    q = self.get_angles() # estimate initial value of joints'
+    J_inv = np.linalg.pinv(self.calculate_jacobian(q))  # calculating the psudeo inverse of Jacobian
+    dq_d =np.dot(J_inv, ( np.dot(K_d,self.error_d.transpose()) + np.dot(K_p,self.error.transpose()) ) )  # control input (angular velocity of joints)
+    q_d = q + (dt * dq_d)  # control input (angular position of joints)
+    return q_d
 
 # call the class
 def main(args):
