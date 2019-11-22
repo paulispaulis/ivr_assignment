@@ -344,6 +344,22 @@ class Get_Coords:
   def trans04(self, thetas):
     return np.matmul(self.trans03(thetas), self.trans34(thetas))
 
+  def fk_ee_pos(self, jointAngles):
+    trans_mat = trans04(jointAngles)
+    ee_x = trans_mat[0][3]
+    ee_y = trans_mat[1][3]
+    ee_z = trans_mat[2][3]
+    return np.array([ee_x, ee_y, ee_z])
+
+  def compare_fk(self, jointAngles):
+    fk_ee = self.fk_ee_pos(jointAngles)
+    print(fk_ee)
+    ee_pos = self.fin_coords[9:12]
+    print(ee_pos)
+    dist = np.linalg.norm(fk_ee-ee_pos)
+    print(dist)
+
+
   def get_angles(self):
     res = least_squares(self.trans_obs_diff, self.current_q,
                         bounds=([-np.pi, -np.pi / 2, -np.pi / 2, -np.pi / 2], [np.pi, np.pi / 2, np.pi / 2, np.pi / 2]))
